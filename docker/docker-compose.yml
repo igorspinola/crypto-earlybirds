@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: earlybirds-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: earlybirds
+      POSTGRES_PASSWORD: earlybirds
+      POSTGRES_DB: earlybirds
+    ports:
+      - "5432:5432"
+    volumes:
+      - earlybirds-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U earlybirds"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  earlybirds-pgdata:
