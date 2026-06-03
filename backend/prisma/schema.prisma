@@ -1,0 +1,137 @@
+// Early Birds — Schema do banco
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  TRADER
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+enum DepositStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+enum DepositMethod {
+  PIX
+  BOLETO
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  age          Int?
+  photoUrl     String?
+  role         UserRole @default(TRADER)
+  balanceBRL   Decimal  @default(0) @db.Decimal(18, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdCryptos      Cryptocurrency[]     @relation("CryptoCreatedBy")
+  holdings            WalletHolding[]
+  transactions        Transaction[]        @relation("TransactionOwner")
+  counterTransactions Transaction[]        @relation("TransactionCounterparty")
+  deposits            Deposit[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Cryptocurrency {
+  id              String   @id @default(uuid())
+  name            String
+  symbol          String   @unique
+  description     String
+  imageUrl        String
+  initialPrice    Decimal  @db.Decimal(18, 8)
+  currentPrice    Decimal  @db.Decimal(18, 8)
+  totalSupply     Decimal  @db.Decimal(28, 8)
+  availableSupply Decimal  @db.Decimal(28, 8)
+  categoryUid     String
+  createdById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy    User            @relation("CryptoCreatedBy", fields: [createdById], references: [id])
+  holdings     WalletHolding[]
+  transactions Transaction[]
+
+  @@index([categoryUid])
+}
+
+model WalletHolding {
+  id               String   @id @default(uuid())
+  userId           String
+  cryptocurrencyId String
+  quantity         Decimal  @default(0) @db.Decimal(28, 8)
+  totalInvestedBRL Decimal  @default(0) @db.Decimal(18, 2)
+  updatedAt        DateTime @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptocurrency Cryptocurrency @relation(fields: [cryptocurrencyId], references: [id])
+
+  @@unique([userId, cryptocurrencyId])
+}
+
+model Transaction {
+  id                 String          @id @default(uuid())
+  userId             String
+  cryptocurrencyId   String
+  type               TransactionType
+  quantity           Decimal         @db.Decimal(28, 8)
+  unitPriceBRL       Decimal         @db.Decimal(18, 8)
+  totalBRL           Decimal         @db.Decimal(18, 2)
+  counterpartyUserId String?
+  createdAt          DateTime        @default(now())
+
+  user           User           @relation("TransactionOwner", fields: [userId], references: [id])
+  counterparty   User?          @relation("TransactionCounterparty", fields: [counterpartyUserId], references: [id])
+  cryptocurrency Cryptocurrency @relation(fields: [cryptocurrencyId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model Deposit {
+  id              String        @id @default(uuid())
+  userId          String
+  amountBRL       Decimal       @db.Decimal(18, 2)
+  method          DepositMethod
+  status          DepositStatus @default(PENDING)
+  asaasPaymentId  String?       @unique
+  asaasInvoiceUrl String?
+  pixQrCode       String?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
