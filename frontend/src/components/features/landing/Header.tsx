@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function Header() {
@@ -5,8 +6,16 @@ export function Header() {
     <header className="relative z-20 flex items-center justify-between px-4 py-4 md:px-8 md:py-6">
       <Link
         href="/"
-        className="font-display text-base font-medium tracking-tight text-white md:text-lg"
+        className="flex items-center gap-2 font-display text-base font-medium tracking-tight text-white md:text-lg"
       >
+        <Image
+          src="/images/logo.svg"
+          alt=""
+          width={24}
+          height={20}
+          className="h-5 w-auto md:h-6"
+          priority
+        />
         CriptoCoin
       </Link>
       <nav className="flex shrink-0 items-center gap-1.5 md:gap-3">
