@@ -4,7 +4,7 @@ import { formatBrl, type Coin } from "@/lib/mock-coins";
 
 export function CoinGalleryCard({ coin }: { coin: Coin }) {
   return (
-    <article className="relative flex aspect-[3/2] flex-col justify-between overflow-hidden rounded-2xl bg-brand-blue-light/20 p-2 ring-1 ring-white/10">
+    <article className="relative mx-auto flex w-[11rem] aspect-[3/2] flex-col justify-between overflow-hidden rounded-2xl bg-brand-blue-light/20 p-2 ring-1 ring-white/10 sm:w-full">
       <Image
         src={coin.textureSrc}
         alt=""

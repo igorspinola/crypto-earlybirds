@@ -56,7 +56,7 @@ export default function GaleriaPage() {
         <p className="text-sm text-white/60">Confira todas as moedas</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5">
+      <div className="flex flex-col items-center gap-3 min-[440px]:grid min-[440px]:mx-0 min-[440px]:w-auto min-[440px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5">
         {visible.map((c, i) => (
           <CoinGalleryCard key={`${c.symbol}-${start + i}`} coin={c} />
         ))}
