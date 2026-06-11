@@ -1,44 +1,52 @@
-"use client";
-
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
 import { COINS } from "@/lib/mock-coins";
 import { CoinPopularCard } from "./CoinPopularCard";
 
+const CENTER = (COINS.length - 1) / 2;
+
 export function CoinPopularCarousel() {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  const scroll = (dir: -1 | 1) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.scrollBy({ left: dir * 220, behavior: "smooth" });
-  };
-
   return (
-    <div className="relative flex items-center gap-2">
+    <div className="relative flex items-center justify-center gap-2 md:gap-4">
       <button
         type="button"
-        onClick={() => scroll(-1)}
         aria-label="Anterior"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-70"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-6 w-6" />
       </button>
       <div
-        ref={trackRef}
-        className="no-scrollbar flex flex-1 gap-3 overflow-x-auto scroll-smooth"
+        role="region"
+        aria-label="Moedas populares"
+        className="relative h-52 w-full max-w-[600px] md:h-56 md:max-w-[900px]"
       >
-        {COINS.map((c, i) => (
-          <CoinPopularCard key={c.symbol} coin={c} dim={i % 3 === 2} />
-        ))}
+        {COINS.map((c, i) => {
+          const offset = i - CENTER;
+          const abs = Math.abs(offset);
+          const translateX = offset * 130;
+          const scale = abs < 1 ? 1.1 : 1 - abs * 0.04;
+          const z = 10 - Math.round(abs);
+          const focus = abs < 1;
+          return (
+            <div
+              key={c.symbol}
+              className="absolute left-1/2 top-1/2"
+              style={{
+                transform: `translate(-50%, -50%) translate(${translateX}px, 0) scale(${scale})`,
+                transformOrigin: "50% 50%",
+                zIndex: z,
+              }}
+            >
+              <CoinPopularCard coin={c} focus={focus} dim={!focus} />
+            </div>
+          );
+        })}
       </div>
       <button
         type="button"
-        onClick={() => scroll(1)}
         aria-label="Próximo"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition-opacity hover:opacity-70"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-6 w-6" />
       </button>
     </div>
   );
