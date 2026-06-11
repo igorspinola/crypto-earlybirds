@@ -3,20 +3,25 @@ import Image from "next/image";
 type BrandImagePanelProps = {
   quote?: string;
   author?: string;
+  imageSrc?: string;
+  objectPosition?: string;
 };
 
 export function BrandImagePanel({
   quote = "“O Bitcoin não é apenas o dinheiro para a internet, é a internet do dinheiro.”",
   author = "Andreas Antonopoulos",
+  imageSrc = "/images/bitcoin-coin.jpg",
+  objectPosition = "10% center",
 }: BrandImagePanelProps) {
   return (
     <div className="relative hidden flex-col justify-between overflow-hidden p-8 text-white md:flex">
       <Image
-        src="/images/bitcoin-coin.jpg"
+        src={imageSrc}
         alt=""
         fill
         sizes="(min-width: 768px) 50vw, 100vw"
         className="object-cover"
+        style={{ objectPosition }}
         priority
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/70" />

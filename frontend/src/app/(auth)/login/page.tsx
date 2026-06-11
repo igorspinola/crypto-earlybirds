@@ -36,6 +36,8 @@ export default function LoginPage() {
           <BrandImagePanel
             quote="“O dinheiro sempre foi, em sua essência, tecnologia.”"
             author="Naval Ravikant"
+            imageSrc="/images/bitcoin-coin-2.jpg"
+            objectPosition="center 100%"
           />
 
           <div className="flex flex-col gap-4 px-6 pb-8 pt-20 md:flex-1 md:gap-5 md:px-10 md:py-10">
