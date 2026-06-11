@@ -8,14 +8,14 @@ export default function HomePage() {
     <div className="flex flex-col gap-6 md:gap-8">
       <section className="relative overflow-hidden rounded-3xl">
         <Image
-          src="/images/bitcoin-coin.jpg"
+          src="/images/futuro-financas.png"
           alt=""
           width={1200}
           height={400}
-          className="h-44 w-full object-cover md:h-64"
+          className="h-76 w-full object-cover md:h-90"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark via-brand-blue-dark/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#02021D] via-[#12131C]/40 to-[#12131C]/0" />
         <div className="absolute inset-0 flex flex-col justify-center gap-3 p-6 md:p-10">
           <h1 className="max-w-md font-display text-2xl font-medium leading-tight text-white md:text-4xl">
             Domine o Futuro das Finanças
