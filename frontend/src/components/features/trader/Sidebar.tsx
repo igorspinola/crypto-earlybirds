@@ -10,7 +10,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden h-screen w-64 flex-col bg-brand-blue-dark/95 px-5 py-6 text-white md:flex">
+    <aside className="hidden h-screen w-64 flex-col bg-brand-blue-dark bg-[url(/images/gradient-bg.png)] bg-cover bg-center px-5 py-6 text-white md:flex">
       <Link href="/home" className="flex items-center gap-2 font-display text-lg font-medium">
         <Image
           src="/images/logo.svg"

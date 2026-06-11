@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/features/trader/Sidebar";
 
 export default function TraderLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen bg-brand-blue-dark bg-[url(/images/gradient-bg.png)] bg-cover bg-center text-white">
+    <div className="relative flex min-h-screen bg-[#03022b] text-white">
       <Sidebar />
       <div className="flex min-h-screen flex-1 flex-col">
         <MobileHeader />
