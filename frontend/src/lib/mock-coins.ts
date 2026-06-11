@@ -26,7 +26,7 @@ export const COINS: Coin[] = [
     priceBrl: 18250.1,
     variation24h: 4.01,
     textureSrc: "/images/coins/eth.jpg",
-    fallbackChar: "Ξ",
+    logoSrc: "/images/coins/eth.svg",
   },
   {
     symbol: "SOL",
@@ -44,7 +44,7 @@ export const COINS: Coin[] = [
     priceBrl: 2.45,
     variation24h: 4.01,
     textureSrc: "/images/coins/ada.jpg",
-    fallbackChar: "₳",
+    logoSrc: "/images/coins/ada.svg",
   },
   {
     symbol: "DOT",
@@ -53,7 +53,7 @@ export const COINS: Coin[] = [
     priceBrl: 32.4,
     variation24h: 4.01,
     textureSrc: "/images/coins/dot.jpg",
-    fallbackChar: "●",
+    logoSrc: "/images/coins/dot.svg",
   },
   {
     symbol: "AVAX",
