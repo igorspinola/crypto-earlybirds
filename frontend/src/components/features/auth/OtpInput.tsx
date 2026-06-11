@@ -45,7 +45,7 @@ export function OtpInput({ length = 4, value, onChange }: OtpInputProps) {
   };
 
   return (
-    <div className="flex justify-between gap-2 md:gap-3">
+    <div className="flex gap-2 md:gap-3">
       {chars.map((c, i) => (
         <input
           key={i}

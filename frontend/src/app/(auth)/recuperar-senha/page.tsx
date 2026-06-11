@@ -30,7 +30,7 @@ export default function RecuperarSenhaPage() {
             author="Naval Ravikant"
           />
 
-          <div className="flex flex-1 flex-col gap-4 px-6 pb-8 pt-6 md:gap-5 md:px-10 md:py-10">
+          <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-4 px-6 pb-8 pt-6 md:max-w-none md:gap-5 md:px-10 md:py-10">
             <Link
               href="/login"
               aria-label="Voltar"
