@@ -4,7 +4,7 @@ import { formatBrl, type Coin } from "@/lib/mock-coins";
 
 export function CoinGalleryCard({ coin }: { coin: Coin }) {
   return (
-    <article className="relative flex aspect-square flex-col justify-between overflow-hidden rounded-3xl bg-brand-blue-light/20 p-4 ring-1 ring-white/10">
+    <article className="relative flex aspect-[3/2] flex-col justify-between overflow-hidden rounded-2xl bg-brand-blue-light/20 p-2 ring-1 ring-white/10">
       <Image
         src={coin.textureSrc}
         alt=""
@@ -19,28 +19,28 @@ export function CoinGalleryCard({ coin }: { coin: Coin }) {
           <Image
             src={coin.logoSrc}
             alt=""
-            width={80}
-            height={80}
-            className="h-20 w-20 drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]"
+            width={60}
+            height={60}
+            className="h-15 w-15 drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]"
           />
         ) : (
-          <span className="font-display text-6xl font-bold text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]">
+          <span className="font-display text-[2.25rem] font-bold text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]">
             {coin.fallbackChar ?? coin.symbol[0]}
           </span>
         )}
       </div>
 
-      <div className="relative flex flex-col gap-1">
-        <div className="flex items-center justify-center gap-1 rounded-full bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-sm">
+      <div className="relative flex flex-col gap-0.5">
+        <div className="flex items-center justify-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium backdrop-blur-sm">
           <span className="text-white">{coin.symbol}</span>
           <span className="text-white/60">— {coin.name}</span>
         </div>
-        <div className="text-center font-display text-base font-bold text-white">
+        <div className="text-center font-display text-sm font-bold text-white">
           {formatBrl(coin.priceBrl)}
         </div>
-        <div className="flex items-center justify-between text-[11px]">
+        <div className="flex items-center justify-between text-[10px]">
           <span className="text-white/60">{coin.category}</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2 py-0.5 text-emerald-300">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-1.5 py-0.5 text-emerald-300">
             <TrendingUp className="h-3 w-3" />
             {coin.variation24h.toFixed(2)}%
           </span>

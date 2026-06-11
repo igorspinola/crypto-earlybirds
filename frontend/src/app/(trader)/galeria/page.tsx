@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { CoinGalleryCard } from "@/components/features/trader/CoinGalleryCard";
 import { GALLERY_COINS } from "@/lib/mock-coins-extended";
 
-const PAGE_SIZE_MOBILE = 6;
 const PAGE_SIZE_DESKTOP = 15;
 
 export default function GaleriaPage() {
@@ -57,10 +56,7 @@ export default function GaleriaPage() {
         <p className="text-sm text-white/60">Confira todas as moedas</p>
       </div>
 
-      <div
-        className="grid gap-3 md:gap-4"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}
-      >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5">
         {visible.map((c, i) => (
           <CoinGalleryCard key={`${c.symbol}-${start + i}`} coin={c} />
         ))}

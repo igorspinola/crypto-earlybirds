@@ -1,17 +1,14 @@
 import { COINS, type Coin } from "./mock-coins";
 
-const variants = [
-  { suffix: "-2", factor: 1.08 },
-  { suffix: "-3", factor: 0.92 },
-  { suffix: "-4", factor: 1.15 },
+const factors = [
+  1, 1.08, 0.92, 1.15, 0.85, 1.22, 0.78, 1.05, 0.95, 1.18, 0.88, 1.33, 0.7,
+  1.45, 0.6, 1.12,
 ];
 
-export const GALLERY_COINS: Coin[] = [
-  ...COINS,
-  ...variants.flatMap((v) =>
-    COINS.map((c) => ({
-      ...c,
-      priceBrl: Number((c.priceBrl * v.factor).toFixed(2)),
-    })),
-  ),
-];
+export const GALLERY_COINS: Coin[] = factors.flatMap((f) =>
+  COINS.map((c) => ({
+    ...c,
+    priceBrl: Number((c.priceBrl * f).toFixed(2)),
+    variation24h: Number((c.variation24h * (f >= 1 ? 1 : -1)).toFixed(2)),
+  })),
+);
