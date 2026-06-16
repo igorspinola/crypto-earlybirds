@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export function MobileHeader() {
+export function MobileHeader({ homeHref }: { homeHref: string }) {
   return (
     <header className="flex items-center justify-between px-5 py-4 text-white md:hidden">
-      <Link href="/home" className="flex items-center gap-2 font-display text-xl font-medium">
+      <Link href={homeHref} className="flex items-center gap-2 font-display text-xl font-medium">
         <Image
           src="/images/logo.svg"
           alt=""

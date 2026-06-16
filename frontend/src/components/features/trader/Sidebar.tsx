@@ -4,14 +4,22 @@ import { LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_ITEMS } from "./nav-items";
+import { ADMIN_NAV_ITEMS, TRADER_NAV_ITEMS } from "./nav-items";
 
-export function Sidebar() {
+type SidebarProps = {
+  variant?: "trader" | "admin";
+};
+
+export function Sidebar({ variant = "trader" }: SidebarProps) {
   const pathname = usePathname();
+  const isAdmin = variant === "admin";
+  const items = isAdmin ? ADMIN_NAV_ITEMS : TRADER_NAV_ITEMS;
+  const roleLabel = isAdmin ? "Admin" : "Trader";
+  const homeHref = isAdmin ? "/admin/home" : "/home";
 
   return (
     <aside className="hidden h-screen w-64 flex-col bg-brand-blue-dark bg-[url(/images/gradient-bg.png)] bg-cover bg-center px-5 py-6 text-white md:flex">
-      <Link href="/home" className="flex items-center gap-2 font-display text-lg font-medium">
+      <Link href={homeHref} className="flex items-center gap-2 font-display text-lg font-medium">
         <Image
           src="/images/logo.svg"
           alt=""
@@ -29,7 +37,7 @@ export function Sidebar() {
         </div>
         <div className="flex min-w-0 flex-col leading-tight">
           <span className="truncate text-sm font-medium">Amanda Morais</span>
-          <span className="text-[11px] text-white/60">Trader</span>
+          <span className="text-[11px] text-white/60">{roleLabel}</span>
         </div>
       </div>
 
@@ -37,7 +45,7 @@ export function Sidebar() {
         Menu
       </p>
       <nav className="mt-2 flex flex-col gap-1">
-        {NAV_ITEMS.map(({ label, href, Icon }) => {
+        {items.map(({ label, href, Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
@@ -45,7 +53,9 @@ export function Sidebar() {
               href={href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 active
-                  ? "bg-brand-blue-light text-white"
+                  ? isAdmin
+                    ? "bg-white text-brand-blue-dark"
+                    : "bg-brand-blue-light text-white"
                   : "text-white/70 hover:bg-white/5 hover:text-white"
               }`}
             >
