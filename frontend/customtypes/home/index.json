@@ -1,0 +1,33 @@
+{
+  "id": "home",
+  "label": "Home",
+  "repeatable": false,
+  "status": true,
+  "format": "custom",
+  "json": {
+    "Main": {
+      "hero_image": {
+        "config": {
+          "label": "Hero Image",
+          "constraint": {},
+          "thumbnails": []
+        },
+        "type": "Image"
+      },
+      "hero_title": {
+        "config": {
+          "label": "Hero Title",
+          "placeholder": "Digite o titulo principal da home"
+        },
+        "type": "Text"
+      },
+      "hero_subtitle": {
+        "config": {
+          "label": "Hero Subtitle",
+          "placeholder": "Digite o subtitulo da home"
+        },
+        "type": "Text"
+      }
+    }
+  }
+}

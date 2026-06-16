@@ -1,0 +1,5 @@
+{
+  "repositoryName": "crypto-earlybirds",
+  "adapter": "@slicemachine/adapter-next",
+  "libraries": ["./slices"]
+}
