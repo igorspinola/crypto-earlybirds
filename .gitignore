@@ -4,6 +4,7 @@
 
 # Manter README.md do repositório
 !README.md
+!CODING_PRINCIPLES.md
 
 # Dependências
 node_modules/

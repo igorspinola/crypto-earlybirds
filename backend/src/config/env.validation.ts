@@ -1,5 +1,12 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsNumberString, IsOptional, IsString, validateSync } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  validateSync,
+} from 'class-validator';
 
 enum NodeEnv {
   development = 'development',
@@ -24,6 +31,18 @@ export class EnvironmentVariables {
 
   @IsString()
   JWT_EXPIRES_IN: string = '7d';
+
+  @IsOptional()
+  @IsString()
+  ADMIN_EMAIL?: string;
+
+  @IsOptional()
+  @IsString()
+  ADMIN_PASSWORD?: string;
+
+  @IsOptional()
+  @IsString()
+  ADMIN_FULL_NAME?: string;
 
   @IsString()
   @IsNotEmpty()
