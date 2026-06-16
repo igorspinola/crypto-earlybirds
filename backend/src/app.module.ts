@@ -11,6 +11,8 @@ import { TradingModule } from './modules/trading/trading.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { DepositsModule } from './modules/deposits/deposits.module';
 import { MailModule } from './modules/mail/mail.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -28,6 +30,10 @@ import { MailModule } from './modules/mail/mail.module';
     DepositsModule,
     MailModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule {}
