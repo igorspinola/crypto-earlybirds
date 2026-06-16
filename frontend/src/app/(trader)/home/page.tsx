@@ -2,8 +2,42 @@ import { Boxes, Coins, ImageIcon, Layers } from "lucide-react";
 import Image from "next/image";
 import { CategoryCard } from "@/components/features/trader/CategoryCard";
 import { CoinPopularCarousel } from "@/components/features/trader/CoinPopularCarousel";
+import { getCategories } from "@/lib/prismic";
 
-export default function HomePage() {
+const CATEGORY_PRESENTATION = {
+  defi: {
+    description: "Finanças descentralizadas e yield farming.",
+    Icon: Layers,
+    accent: "emerald",
+  },
+  nft: {
+    description: "Colecionáveis digitais e arte exclusiva.",
+    Icon: ImageIcon,
+    accent: "indigo",
+  },
+  metaverse: {
+    description: "Tokens de mundos virtuais e jogos.",
+    Icon: Boxes,
+    accent: "fuchsia",
+  },
+  stablecoins: {
+    description: "Ativos pareados a moedas fiduciárias.",
+    Icon: Coins,
+    accent: "amber",
+  },
+} as const;
+
+const DEFAULT_PRESENTATION = {
+  description: "Explore os ativos disponíveis nesta categoria.",
+  Icon: Coins,
+  accent: "indigo",
+} as const;
+
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const categories = await getCategories();
+
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <section className="relative overflow-hidden rounded-3xl">
@@ -36,30 +70,24 @@ export default function HomePage() {
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-medium md:text-xl">Categorias</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <CategoryCard
-            title="DeFi"
-            description="Finanças descentralizadas e yield farming."
-            Icon={Layers}
-            accent="emerald"
-          />
-          <CategoryCard
-            title="NFT"
-            description="Colecionáveis digitais e arte exclusiva."
-            Icon={ImageIcon}
-            accent="indigo"
-          />
-          <CategoryCard
-            title="Metaverse"
-            description="Tokens de mundos virtuais e jogos."
-            Icon={Boxes}
-            accent="fuchsia"
-          />
-          <CategoryCard
-            title="Stablecoins"
-            description="Ativos pareados a moedas fiduciárias."
-            Icon={Coins}
-            accent="amber"
-          />
+          {categories.map((category) => {
+            const presentation =
+              CATEGORY_PRESENTATION[
+                category.uid as keyof typeof CATEGORY_PRESENTATION
+              ] ?? DEFAULT_PRESENTATION;
+
+            return (
+              <CategoryCard
+                key={category.uid}
+                title={category.name}
+                description={presentation.description}
+                imageUrl={category.imageUrl}
+                imageAlt={category.imageAlt}
+                Icon={presentation.Icon}
+                accent={presentation.accent}
+              />
+            );
+          })}
         </div>
       </section>
 

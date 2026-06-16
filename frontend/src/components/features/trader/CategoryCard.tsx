@@ -1,8 +1,11 @@
 import type { ComponentType } from "react";
+import Image from "next/image";
 
 type CategoryCardProps = {
   title: string;
   description: string;
+  imageUrl?: string | null;
+  imageAlt?: string;
   Icon: ComponentType<{ className?: string }>;
   accent: "emerald" | "indigo" | "fuchsia" | "amber";
 };
@@ -14,13 +17,30 @@ const ACCENTS: Record<CategoryCardProps["accent"], string> = {
   amber: "from-amber-400/30 to-amber-700/10 text-amber-300",
 };
 
-export function CategoryCard({ title, description, Icon, accent }: CategoryCardProps) {
+export function CategoryCard({
+  title,
+  description,
+  imageUrl,
+  imageAlt,
+  Icon,
+  accent,
+}: CategoryCardProps) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl bg-brand-blue-dark/80 p-4 ring-1 ring-white/10 backdrop-blur-sm">
       <span
-        className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${ACCENTS[accent]}`}
+        className={`relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br ${ACCENTS[accent]}`}
       >
-        <Icon className="h-5 w-5" />
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={imageAlt || title}
+            fill
+            sizes="40px"
+            className="object-cover"
+          />
+        ) : (
+          <Icon className="h-5 w-5" />
+        )}
       </span>
       <h3 className="font-display text-base font-medium md:text-lg">{title}</h3>
       <p className="text-xs text-white/60 md:text-sm">{description}</p>

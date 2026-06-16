@@ -1,0 +1,27 @@
+{
+  "id": "about",
+  "label": "About",
+  "repeatable": false,
+  "status": true,
+  "format": "custom",
+  "json": {
+    "Main": {
+      "title": {
+        "config": {
+          "label": "Title",
+          "placeholder": "Titulo da pagina Sobre"
+        },
+        "type": "Text"
+      },
+      "content": {
+        "config": {
+          "label": "Content",
+          "placeholder": "Conteudo institucional da pagina Sobre",
+          "allowTargetBlank": true,
+          "multi": "paragraph,strong,em,hyperlink,list-item,o-list-item"
+        },
+        "type": "StructuredText"
+      }
+    }
+  }
+}
