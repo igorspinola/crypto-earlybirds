@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { ApiError, createCryptocurrency } from "@/lib/api";
 import type { CmsCategory } from "@/lib/prismic";
 
 const schema = z.object({
@@ -20,6 +22,7 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
 
 type Props = {
   categories: CmsCategory[];
@@ -31,18 +34,28 @@ const inputClass =
 const labelClass = "text-sm font-medium text-white";
 
 export function CryptoCreateForm({ categories }: Props) {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
   });
 
   const onSubmit = async (data: FormValues) => {
-    // TODO integrar com POST /api/v1/cryptocurrencies quando endpoint estiver pronto
-    console.log("submit", data);
-    await new Promise((r) => setTimeout(r, 400));
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    try {
+      const cryptocurrency = await createCryptocurrency(data);
+      setSubmitSuccess(`${cryptocurrency.symbol} cadastrada com sucesso.`);
+      reset();
+    } catch (error) {
+      setSubmitError(getSubmitErrorMessage(error));
+    }
   };
 
   return (
@@ -133,8 +146,20 @@ export function CryptoCreateForm({ categories }: Props) {
           {isSubmitting ? "Cadastrando..." : "Cadastrar Criptomoeda"}
         </button>
       </div>
+      {submitError && <p className="text-sm text-red-400">{submitError}</p>}
+      {submitSuccess && (
+        <p className="text-sm text-emerald-300">{submitSuccess}</p>
+      )}
     </form>
   );
+}
+
+function getSubmitErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+
+  return "Não foi possível cadastrar a criptomoeda";
 }
 
 function Field({

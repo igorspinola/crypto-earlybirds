@@ -2,8 +2,15 @@ import type { ReactNode } from "react";
 import { BottomNav } from "@/components/features/trader/BottomNav";
 import { MobileHeader } from "@/components/features/trader/MobileHeader";
 import { Sidebar } from "@/components/features/trader/Sidebar";
+import { requireUserRole } from "@/lib/server-auth";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  await requireUserRole(["ADMIN"]);
+
   return (
     <div className="relative flex min-h-screen bg-[#03022b] text-white">
       <Sidebar variant="admin" />

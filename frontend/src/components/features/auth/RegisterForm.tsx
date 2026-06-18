@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Mail, User } from "lucide-react";
 import Image from "next/image";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { FormField } from "./FormField";
 
@@ -11,11 +11,7 @@ const schema = z.object({
   fullName: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
-  photoUrl: z
-    .string()
-    .url("URL inválida")
-    .optional()
-    .or(z.literal("")),
+  photoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   age: z.coerce
     .number()
     .int("Idade deve ser um número inteiro")
@@ -25,18 +21,19 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
 
 export function RegisterForm() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
   });
 
-  const photoUrl = watch("photoUrl");
+  const photoUrl = useWatch({ control, name: "photoUrl" });
 
   const onSubmit = async (data: FormValues) => {
     // TODO integrar com POST /api/v1/auth/register quando endpoint estiver pronto

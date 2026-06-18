@@ -1,4 +1,4 @@
-import { asText, createClient } from "@prismicio/client";
+import { asText, createClient, type RichTextField } from "@prismicio/client";
 
 type PrismicImageField = {
   url?: string | null;
@@ -16,7 +16,7 @@ type HomeDocument = {
 type AboutDocument = {
   data?: {
     title?: string | null;
-    content?: unknown;
+    content?: RichTextField | null;
   };
 };
 
@@ -98,9 +98,6 @@ function getPrismicClient() {
 
   return createClient(repositoryName, {
     accessToken: accessToken || undefined,
-    fetchOptions: {
-      next: { revalidate: 60 },
-    },
   });
 }
 
@@ -168,9 +165,7 @@ export async function getCategories(): Promise<CmsCategory[]> {
       name: category.data?.name?.trim() || "Categoria",
       imageUrl: category.data?.image?.url ?? null,
       imageAlt:
-        category.data?.image?.alt ||
-        category.data?.name?.trim() ||
-        "Categoria",
+        category.data?.image?.alt || category.data?.name?.trim() || "Categoria",
     }));
   } catch {
     return CATEGORY_FALLBACK;

@@ -16,7 +16,14 @@ export function AllocationDonut() {
   const total = SLICES.reduce((s, x) => s + x.value, 0);
   const R = 60;
   const C = 2 * Math.PI * R;
-  let offset = 0;
+  const segments = SLICES.reduce<
+    Array<Slice & { length: number; offset: number }>
+  >((items, slice) => {
+    const offset = items.reduce((sum, item) => sum + item.length, 0);
+    const length = (slice.value / total) * C;
+
+    return [...items, { ...slice, length, offset }];
+  }, []);
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-brand-blue-dark/60 p-4 ring-1 ring-white/10 backdrop-blur-sm">
@@ -25,24 +32,19 @@ export function AllocationDonut() {
       </h3>
       <div className="flex items-center gap-4">
         <svg viewBox="-80 -80 160 160" className="h-32 w-32 -rotate-90">
-          {SLICES.map((s) => {
-            const len = (s.value / total) * C;
-            const el = (
-              <circle
-                key={s.label}
-                r={R}
-                cx={0}
-                cy={0}
-                fill="none"
-                stroke={s.color}
-                strokeWidth={20}
-                strokeDasharray={`${len} ${C - len}`}
-                strokeDashoffset={-offset}
-              />
-            );
-            offset += len;
-            return el;
-          })}
+          {segments.map((segment) => (
+            <circle
+              key={segment.label}
+              r={R}
+              cx={0}
+              cy={0}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth={20}
+              strokeDasharray={`${segment.length} ${C - segment.length}`}
+              strokeDashoffset={-segment.offset}
+            />
+          ))}
         </svg>
         <ul className="flex flex-1 flex-col gap-1 text-xs">
           {SLICES.map((s) => (

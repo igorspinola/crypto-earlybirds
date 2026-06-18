@@ -4,6 +4,7 @@ import {
   House,
   LayoutGrid,
   PlusCircle,
+  UserPlus,
   Wallet,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -26,5 +27,6 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Home", href: "/admin/home", Icon: House },
   { label: "Galeria", href: "/admin/galeria", Icon: LayoutGrid },
   { label: "Carteira", href: "/admin/carteira", Icon: Wallet },
-  { label: "Cadastro", href: "/admin/cadastrar-moeda", Icon: PlusCircle },
+  { label: "Moeda", href: "/admin/cadastrar-moeda", Icon: PlusCircle },
+  { label: "Trader", href: "/admin/cadastrar-trader", Icon: UserPlus },
 ];
