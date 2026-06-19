@@ -9,13 +9,13 @@ export default async function TraderLayout({
 }: {
   children: ReactNode;
 }) {
-  await requireUserRole(["TRADER"]);
+  const user = await requireUserRole(["TRADER"]);
 
   return (
     <div className="relative flex min-h-screen bg-[#03022b] text-white">
-      <Sidebar />
+      <Sidebar user={user} />
       <div className="flex min-h-screen flex-1 flex-col">
-        <MobileHeader homeHref="/home" />
+        <MobileHeader homeHref="/home" user={user} />
         <main className="flex-1 px-5 pb-6 md:px-10 md:py-8">{children}</main>
         <BottomNav />
       </div>

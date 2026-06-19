@@ -28,6 +28,16 @@ export type ApiCryptocurrency = {
   updatedAt: string;
 };
 
+export type ApiCryptocurrencyList = {
+  items: ApiCryptocurrency[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
 export type LoginPayload = {
   email: string;
   password: string;
@@ -143,6 +153,16 @@ export async function createCryptocurrency(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function listCryptocurrencies(cookieHeader?: string) {
+  return apiRequest<ApiCryptocurrencyList>(
+    "/cryptocurrencies?page=1&pageSize=100",
+    {
+      cache: "no-store",
+      cookieHeader,
+    },
+  );
 }
 
 export function getHomePathByRole(role: UserRole) {
