@@ -23,7 +23,10 @@ async function bootstrap() {
 
   const frontendUrl = config.get<string>('FRONTEND_URL');
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true);
       if (frontendUrl && origin === frontendUrl) return callback(null, true);
       if (/^https:\/\/crypto-earlybirds[\w-]*\.vercel\.app$/.test(origin)) {
