@@ -1,7 +1,10 @@
 import { Boxes, Coins, ImageIcon, Layers } from "lucide-react";
 import Image from "next/image";
+import { cookies } from "next/headers";
 import { CategoryCard } from "@/components/features/trader/CategoryCard";
 import { CoinPopularCarousel } from "@/components/features/trader/CoinPopularCarousel";
+import { listCryptocurrencies } from "@/lib/api";
+import { apiCryptocurrencyToCoin } from "@/lib/coin-adapter";
 import { getCategories, getHomeContent } from "@/lib/prismic";
 
 const CATEGORY_PRESENTATION = {
@@ -28,13 +31,17 @@ const DEFAULT_PRESENTATION = {
   accent: "indigo",
 } as const;
 
-export const revalidate = 60;
-
 export default async function AdminHomePage() {
-  const [categories, homeContent] = await Promise.all([
+  const cookieHeader = (await cookies()).toString();
+  const [categories, homeContent, cryptocurrencies] = await Promise.all([
     getCategories(),
     getHomeContent(),
+    listCryptocurrencies(cookieHeader),
   ]);
+  const popularCoins = [...cryptocurrencies.items]
+    .sort((a, b) => Number(b.currentPrice) - Number(a.currentPrice))
+    .slice(0, 6)
+    .map(apiCryptocurrencyToCoin);
   const heroImageUrl =
     homeContent.heroImageUrl || "/images/futuro-financas.png";
 
@@ -96,7 +103,7 @@ export default async function AdminHomePage() {
         <h2 className="font-display text-lg font-medium md:text-xl">
           Moedas populares
         </h2>
-        <CoinPopularCarousel />
+        <CoinPopularCarousel coins={popularCoins} />
       </section>
     </div>
   );
