@@ -3,8 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Mail } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { ApiError, getHomePathByRole, login } from "@/lib/api";
 import { FormField } from "./FormField";
 
 const schema = z.object({
@@ -15,6 +18,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
+  const router = useRouter();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -24,9 +29,15 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: FormValues) => {
-    // TODO integrar com POST /api/v1/auth/login quando endpoint estiver pronto
-    console.log("submit", data);
-    await new Promise((r) => setTimeout(r, 400));
+    setSubmitError(null);
+
+    try {
+      const result = await login(data);
+      router.replace(getHomePathByRole(result.user.role));
+      router.refresh();
+    } catch (error) {
+      setSubmitError(getSubmitErrorMessage(error));
+    }
   };
 
   return (
@@ -62,6 +73,11 @@ export function LoginForm() {
       >
         {isSubmitting ? "Entrando..." : "Entrar"}
       </button>
+      {submitError && (
+        <p className="text-center text-xs text-red-500 md:text-sm">
+          {submitError}
+        </p>
+      )}
       <p className="mt-1 text-center text-xs text-zinc-500 md:text-sm">
         Não tem uma conta?{" "}
         <Link
@@ -73,4 +89,12 @@ export function LoginForm() {
       </p>
     </form>
   );
+}
+
+function getSubmitErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+
+  return "Não foi possível entrar agora";
 }

@@ -6,14 +6,6 @@
   "format": "custom",
   "json": {
     "Main": {
-      "hero_image": {
-        "config": {
-          "label": "Hero Image",
-          "constraint": {},
-          "thumbnails": []
-        },
-        "type": "Image"
-      },
       "hero_title": {
         "config": {
           "label": "Hero Title",

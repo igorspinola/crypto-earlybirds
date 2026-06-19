@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { CmsHome } from "@/lib/prismic";
 import { CoinMarquee } from "./CoinMarquee";
@@ -7,17 +6,6 @@ import { Header } from "./Header";
 export function Hero({ content }: { content: CmsHome }) {
   return (
     <section className="relative overflow-hidden bg-brand-blue-dark bg-[url(/images/gradient-bg.png)] bg-cover bg-center text-white">
-      {content.heroImageUrl ? (
-        <Image
-          src={content.heroImageUrl}
-          alt={content.heroImageAlt}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover opacity-20"
-        />
-      ) : null}
-      <div className="absolute inset-0 bg-brand-blue-dark/80" />
       <Header />
       <div className="relative mx-auto max-w-6xl px-6 pt-10 pb-10 text-center md:px-8 md:pt-20 md:pb-16">
         <h1 className="font-display text-[1.75rem] font-medium leading-[1.1] tracking-tight sm:text-4xl md:text-6xl md:leading-[1.05] lg:text-7xl">

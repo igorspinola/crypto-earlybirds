@@ -1,10 +1,33 @@
+import { cookies } from "next/headers";
 import { AllocationDonut } from "@/components/features/trader/AllocationDonut";
 import { HistoryTable } from "@/components/features/trader/HistoryTable";
 import { PortfolioChart } from "@/components/features/trader/PortfolioChart";
 import { StatCard } from "@/components/features/trader/StatCard";
+import { getWallet, listDeposits, listTransactions } from "@/lib/api";
 import { formatBrl } from "@/lib/mock-coins";
+import { buildPortfolioSnapshot } from "@/lib/portfolio-snapshot";
 
-export default function CarteiraPage() {
+export default async function CarteiraPage() {
+  const cookieHeader = (await cookies()).toString();
+  const [wallet, transactions, deposits] = await Promise.all([
+    getWallet(cookieHeader),
+    listTransactions(cookieHeader),
+    listDeposits(cookieHeader),
+  ]);
+  const portfolioSeries = buildPortfolioSnapshot(
+    wallet,
+    deposits,
+    transactions,
+  );
+
+  const totalValue = Number(wallet.totalValueBRL);
+  const balance = Number(wallet.balanceBRL);
+  const profitLossTotal = wallet.holdings.reduce(
+    (sum, holding) =>
+      sum + (Number(holding.currentValueBRL) - Number(holding.totalInvestedBRL)),
+    0,
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
@@ -17,18 +40,14 @@ export default function CarteiraPage() {
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <StatCard
           label="Saldo total"
-          value={formatBrl(30000.2)}
+          value={formatBrl(totalValue)}
           variant="primary"
         />
-        <StatCard
-          label="Lucro/Prejuízo 24h"
-          value={formatBrl(10200.1)}
-          trend="up"
-        />
+        <StatCard label="Saldo disponível" value={formatBrl(balance)} />
         <StatCard
           label="Lucro/Prejuízo Total"
-          value={formatBrl(2201.1)}
-          trend="down"
+          value={formatBrl(profitLossTotal)}
+          trend={profitLossTotal >= 0 ? "up" : "down"}
         />
       </div>
 
@@ -36,14 +55,14 @@ export default function CarteiraPage() {
         <h2 className="font-display text-sm font-medium text-white/80 md:text-base">
           Gráfico de patrimônio
         </h2>
-        <PortfolioChart />
+        <PortfolioChart series={portfolioSeries} />
       </section>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="md:col-span-2">
-          <HistoryTable />
+          <HistoryTable transactions={transactions} />
         </div>
-        <AllocationDonut />
+        <AllocationDonut holdings={wallet.holdings} />
       </div>
     </div>
   );

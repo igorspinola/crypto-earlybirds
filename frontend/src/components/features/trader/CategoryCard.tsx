@@ -1,6 +1,4 @@
 import type { ComponentType } from "react";
-import Image from "next/image";
-
 type CategoryCardProps = {
   title: string;
   description: string;
@@ -31,12 +29,12 @@ export function CategoryCard({
         className={`relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br ${ACCENTS[accent]}`}
       >
         {imageUrl ? (
-          <Image
+          // Category images come from Prismic and can be SVGs, so avoid Next image optimizer restrictions here.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={imageUrl}
             alt={imageAlt || title}
-            fill
-            sizes="40px"
-            className="object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
           <Icon className="h-5 w-5" />

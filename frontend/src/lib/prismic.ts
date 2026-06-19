@@ -1,4 +1,4 @@
-import { asText, createClient } from "@prismicio/client";
+import { asText, createClient, type RichTextField } from "@prismicio/client";
 
 type PrismicImageField = {
   url?: string | null;
@@ -16,7 +16,7 @@ type HomeDocument = {
 type AboutDocument = {
   data?: {
     title?: string | null;
-    content?: unknown;
+    content?: RichTextField | null;
   };
 };
 
@@ -24,6 +24,7 @@ type CategoryDocument = {
   uid?: string | null;
   data?: {
     name?: string | null;
+    description?: string | null;
     image?: PrismicImageField | null;
   };
 };
@@ -43,6 +44,7 @@ export type CmsAbout = {
 export type CmsCategory = {
   uid: string;
   name: string;
+  description: string;
   imageUrl: string | null;
   imageAlt: string;
 };
@@ -68,24 +70,28 @@ const CATEGORY_FALLBACK: CmsCategory[] = [
   {
     uid: "defi",
     name: "DeFi",
+    description: "Finanças descentralizadas e yield farming.",
     imageUrl: null,
     imageAlt: "Categoria DeFi",
   },
   {
     uid: "nft",
     name: "NFT",
+    description: "Colecionáveis digitais e arte exclusiva.",
     imageUrl: null,
     imageAlt: "Categoria NFT",
   },
   {
     uid: "metaverse",
     name: "Metaverse",
+    description: "Tokens de mundos virtuais e jogos.",
     imageUrl: null,
     imageAlt: "Categoria Metaverse",
   },
   {
     uid: "stablecoins",
     name: "Stablecoins",
+    description: "Ativos pareados a moedas fiduciárias.",
     imageUrl: null,
     imageAlt: "Categoria Stablecoins",
   },
@@ -98,9 +104,6 @@ function getPrismicClient() {
 
   return createClient(repositoryName, {
     accessToken: accessToken || undefined,
-    fetchOptions: {
-      next: { revalidate: 60 },
-    },
   });
 }
 
@@ -166,11 +169,10 @@ export async function getCategories(): Promise<CmsCategory[]> {
     return categories.map((category) => ({
       uid: category.uid || "category",
       name: category.data?.name?.trim() || "Categoria",
+      description: category.data?.description?.trim() ?? "",
       imageUrl: category.data?.image?.url ?? null,
       imageAlt:
-        category.data?.image?.alt ||
-        category.data?.name?.trim() ||
-        "Categoria",
+        category.data?.image?.alt || category.data?.name?.trim() || "Categoria",
     }));
   } catch {
     return CATEGORY_FALLBACK;

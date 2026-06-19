@@ -5,10 +5,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomBytes, createHash } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
+import { CreateTraderDto } from '../users/dto/create-trader.dto';
 import { serializeUser } from '../users/user.serializer';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -42,16 +44,13 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const payload: JwtPayload = {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    return this.createAuthenticatedSession(user);
+  }
 
-    return {
-      accessToken: await this.jwtService.signAsync(payload),
-      user: serializeUser(user),
-    };
+  async register(dto: CreateTraderDto) {
+    const user = await this.usersService.createTrader(dto);
+
+    return this.createAuthenticatedSession(user);
   }
 
   async requestPasswordReset(email: string): Promise<void> {
@@ -111,6 +110,19 @@ export class AuthService {
 
   private hashToken(token: string): string {
     return createHash('sha256').update(token).digest('hex');
+  }
+
+  private async createAuthenticatedSession(user: User) {
+    const payload: JwtPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return {
+      accessToken: await this.jwtService.signAsync(payload),
+      user: serializeUser(user),
+    };
   }
 
   private parseDurationInMilliseconds(value: string): number {

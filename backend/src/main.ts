@@ -14,7 +14,6 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
       transformOptions: { enableImplicitConversion: true },
     }),
@@ -32,9 +31,14 @@ async function bootstrap() {
     .setDescription('API de negociação de criptomoedas fictícias')
     .setVersion('1.0')
     .addBearerAuth()
+    .addCookieAuth('access_token')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      withCredentials: true,
+    },
+  });
 
   const port = Number(config.get<string>('PORT') ?? 3001);
   await app.listen(port);

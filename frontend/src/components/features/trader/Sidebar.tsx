@@ -3,21 +3,27 @@
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { logout, type ApiUser } from "@/lib/api";
 import { ADMIN_NAV_ITEMS, TRADER_NAV_ITEMS } from "./nav-items";
+import { getUserInitials } from "./user-display";
 
 type SidebarProps = {
   variant?: "trader" | "admin";
+  user: ApiUser;
 };
 
-export function Sidebar({ variant = "trader" }: SidebarProps) {
+export function Sidebar({ variant = "trader", user }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isAdmin = variant === "admin";
   const items = isAdmin ? ADMIN_NAV_ITEMS : TRADER_NAV_ITEMS;
   const roleLabel = isAdmin ? "Admin" : "Trader";
   const homeHref = isAdmin ? "/admin/home" : "/home";
+  const userInitials = getUserInitials(user);
 
   return (
     <aside
@@ -67,11 +73,26 @@ export function Sidebar({ variant = "trader" }: SidebarProps) {
           collapsed ? "justify-center p-0" : "bg-white/5 p-3"
         }`}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-200 text-sm font-medium text-amber-900">
-          AM
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-200 text-sm font-medium text-amber-900">
+          {user.photoUrl ? (
+            <Image
+              src={user.photoUrl}
+              alt=""
+              fill
+              sizes="40px"
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            userInitials
+          )}
         </div>
-        <div className={collapsed ? "sr-only" : "flex min-w-0 flex-col leading-tight"}>
-          <span className="truncate text-sm font-medium">Amanda Morais</span>
+        <div
+          className={
+            collapsed ? "sr-only" : "flex min-w-0 flex-col leading-tight"
+          }
+        >
+          <span className="truncate text-sm font-medium">{user.fullName}</span>
           <span className="text-[11px] text-white/60">{roleLabel}</span>
         </div>
       </div>
@@ -99,7 +120,7 @@ export function Sidebar({ variant = "trader" }: SidebarProps) {
                     ? "bg-white text-brand-blue-dark"
                     : "bg-brand-blue-light text-white"
                   : "text-white/70 hover:bg-white/5 hover:text-white"
-                }`}
+              }`}
             >
               <Icon className="h-4 w-4" />
               <span className={collapsed ? "sr-only" : ""}>{label}</span>
@@ -111,6 +132,13 @@ export function Sidebar({ variant = "trader" }: SidebarProps) {
       <button
         type="button"
         aria-label="Sair"
+        disabled={isLoggingOut}
+        onClick={async () => {
+          setIsLoggingOut(true);
+          await logout().catch(() => undefined);
+          router.replace("/login");
+          router.refresh();
+        }}
         className={`mt-auto flex items-center justify-center rounded-xl font-display text-sm font-medium text-white transition-opacity hover:opacity-90 ${
           collapsed
             ? "bg-transparent p-3 text-white/80"
@@ -124,7 +152,9 @@ export function Sidebar({ variant = "trader" }: SidebarProps) {
           height={20}
           className="h-4 w-4"
         />
-        <span className={collapsed ? "sr-only" : ""}>Sair</span>
+        <span className={collapsed ? "sr-only" : ""}>
+          {isLoggingOut ? "Saindo..." : "Sair"}
+        </span>
       </button>
     </aside>
   );

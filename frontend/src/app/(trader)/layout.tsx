@@ -2,13 +2,20 @@ import type { ReactNode } from "react";
 import { BottomNav } from "@/components/features/trader/BottomNav";
 import { MobileHeader } from "@/components/features/trader/MobileHeader";
 import { Sidebar } from "@/components/features/trader/Sidebar";
+import { requireUserRole } from "@/lib/server-auth";
 
-export default function TraderLayout({ children }: { children: ReactNode }) {
+export default async function TraderLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const user = await requireUserRole(["TRADER"]);
+
   return (
     <div className="relative flex min-h-screen bg-[#03022b] text-white">
-      <Sidebar />
+      <Sidebar user={user} />
       <div className="flex min-h-screen flex-1 flex-col">
-        <MobileHeader homeHref="/home" />
+        <MobileHeader homeHref="/home" user={user} />
         <main className="flex-1 px-5 pb-6 md:px-10 md:py-8">{children}</main>
         <BottomNav />
       </div>

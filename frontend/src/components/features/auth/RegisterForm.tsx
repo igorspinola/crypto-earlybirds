@@ -3,45 +3,59 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Mail, User } from "lucide-react";
 import Image from "next/image";
-import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { ApiError, registerUser } from "@/lib/api";
 import { FormField } from "./FormField";
 
 const schema = z.object({
   fullName: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
-  photoUrl: z
-    .string()
-    .url("URL inválida")
-    .optional()
-    .or(z.literal("")),
-  age: z.coerce
-    .number()
-    .int("Idade deve ser um número inteiro")
-    .min(13, "Mínimo 13 anos")
-    .max(120, "Idade inválida")
-    .optional(),
+  photoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  age: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce
+      .number()
+      .int("Idade deve ser um número inteiro")
+      .min(13, "Mínimo 13 anos")
+      .max(120, "Idade inválida")
+      .optional(),
+  ),
 });
 
 type FormValues = z.infer<typeof schema>;
+type FormInput = z.input<typeof schema>;
 
 export function RegisterForm() {
+  const router = useRouter();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
   });
 
-  const photoUrl = watch("photoUrl");
+  const photoUrl = useWatch({ control, name: "photoUrl" });
 
   const onSubmit = async (data: FormValues) => {
-    // TODO integrar com POST /api/v1/auth/register quando endpoint estiver pronto
-    console.log("submit", data);
-    await new Promise((r) => setTimeout(r, 400));
+    setSubmitError(null);
+
+    try {
+      await registerUser({
+        ...data,
+        photoUrl: data.photoUrl || undefined,
+      });
+      router.replace("/home");
+      router.refresh();
+    } catch (error) {
+      setSubmitError(getSubmitErrorMessage(error));
+    }
   };
 
   return (
@@ -106,6 +120,15 @@ export function RegisterForm() {
       >
         {isSubmitting ? "Criando conta..." : "Criar Conta"}
       </button>
+      {submitError && <p className="text-sm text-red-500">{submitError}</p>}
     </form>
   );
+}
+
+function getSubmitErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+
+  return "Não foi possível criar sua conta";
 }

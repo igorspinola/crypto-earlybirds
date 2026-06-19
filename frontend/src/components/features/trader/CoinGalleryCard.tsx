@@ -3,6 +3,8 @@ import Image from "next/image";
 import { formatBrl, type Coin } from "@/lib/mock-coins";
 
 export function CoinGalleryCard({ coin }: { coin: Coin }) {
+  const isLocalLogo = coin.logoSrc?.startsWith("/");
+
   return (
     <article className="relative mx-auto flex w-[11rem] aspect-[3/2] flex-col justify-between overflow-hidden rounded-2xl bg-brand-blue-light/20 p-2 ring-1 ring-white/10 sm:w-full">
       <Image
@@ -15,13 +17,21 @@ export function CoinGalleryCard({ coin }: { coin: Coin }) {
       <div className="absolute inset-0 bg-gradient-to-b from-brand-blue-light/40 via-brand-blue-dark/30 to-brand-blue-dark/80" />
 
       <div className="relative flex flex-1 items-center justify-center">
-        {coin.logoSrc ? (
+        {coin.logoSrc && isLocalLogo ? (
           <Image
             src={coin.logoSrc}
             alt=""
             width={60}
             height={60}
             className="h-15 w-15 drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]"
+          />
+        ) : coin.logoSrc ? (
+          // Admin-created coin logos can point to arbitrary URLs, so avoid Next image domain restrictions here.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coin.logoSrc}
+            alt=""
+            className="h-15 w-15 object-contain drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]"
           />
         ) : (
           <span className="font-display text-[2.25rem] font-bold text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.4)]">
