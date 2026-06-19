@@ -69,6 +69,27 @@ export type CreateCryptocurrencyPayload = {
   description: string;
 };
 
+export type DepositMethod = "PIX" | "BOLETO";
+export type DepositStatus = "PENDING" | "PAID" | "CANCELED";
+
+export type ApiDeposit = {
+  id: string;
+  userId: string;
+  amountBRL: string;
+  method: DepositMethod;
+  status: DepositStatus;
+  asaasPaymentId: string | null;
+  asaasInvoiceUrl: string | null;
+  pixQrCode: string | null;
+  paidAt: string | null;
+  createdAt: string;
+};
+
+export type CreateDepositPayload = {
+  amountBRL: number;
+  method: DepositMethod;
+};
+
 type ApiRequestOptions = RequestInit & {
   cookieHeader?: string;
 };
@@ -178,6 +199,100 @@ export async function listCryptocurrencies(cookieHeader?: string) {
       cookieHeader,
     },
   );
+}
+
+export type ApiWalletHolding = {
+  id: string;
+  cryptocurrencyId: string;
+  quantity: string;
+  totalInvestedBRL: string;
+  averagePriceBRL: string;
+  currentValueBRL: string;
+  cryptocurrency: {
+    id: string;
+    name: string;
+    symbol: string;
+    imageUrl: string;
+    currentPrice: string;
+    categoryUid: string;
+  };
+  updatedAt: string;
+};
+
+export type ApiWallet = {
+  balanceBRL: string;
+  holdingsValueBRL: string;
+  totalValueBRL: string;
+  holdings: ApiWalletHolding[];
+};
+
+export async function getWallet(cookieHeader?: string) {
+  return apiRequest<ApiWallet>("/wallet", {
+    cache: "no-store",
+    cookieHeader,
+  });
+}
+
+export type TransactionType = "BUY" | "SELL";
+
+export type ApiTransaction = {
+  id: string;
+  userId: string;
+  cryptocurrencyId: string;
+  type: TransactionType;
+  quantity: string;
+  unitPriceBRL: string;
+  totalBRL: string;
+  counterpartyUserId: string | null;
+  createdAt: string;
+  cryptocurrency: {
+    id: string;
+    name: string;
+    symbol: string;
+    imageUrl: string;
+    currentPrice: string;
+    categoryUid: string;
+  };
+};
+
+export type TradePayload = {
+  cryptocurrencyId: string;
+  quantity: number;
+};
+
+export async function listTransactions(cookieHeader?: string) {
+  return apiRequest<ApiTransaction[]>("/trading/transactions", {
+    cache: "no-store",
+    cookieHeader,
+  });
+}
+
+export async function buyCryptocurrency(payload: TradePayload) {
+  return apiRequest<ApiTransaction>("/trading/buy", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function sellCryptocurrency(payload: TradePayload) {
+  return apiRequest<ApiTransaction>("/trading/sell", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function createDeposit(payload: CreateDepositPayload) {
+  return apiRequest<ApiDeposit>("/deposits", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listDeposits(cookieHeader?: string) {
+  return apiRequest<ApiDeposit[]>("/deposits", {
+    cache: "no-store",
+    cookieHeader,
+  });
 }
 
 export function getHomePathByRole(role: UserRole) {

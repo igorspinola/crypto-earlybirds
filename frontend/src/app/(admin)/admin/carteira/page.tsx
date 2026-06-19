@@ -36,14 +36,14 @@ export default function AdminCarteiraPage() {
         <h2 className="font-display text-sm font-medium text-white/80 md:text-base">
           Gráfico de patrimônio
         </h2>
-        <PortfolioChart />
+        <PortfolioChart series={[]} />
       </section>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <div className="md:col-span-2">
-          <HistoryTable />
+          <HistoryTable transactions={[]} />
         </div>
-        <AllocationDonut />
+        <AllocationDonut holdings={[]} />
       </div>
     </div>
   );

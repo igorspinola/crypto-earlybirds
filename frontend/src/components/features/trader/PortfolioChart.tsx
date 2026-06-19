@@ -1,22 +1,35 @@
-const POINTS = [
-  35, 38, 32, 40, 45, 42, 50, 48, 55, 60, 58, 65, 62, 68, 70, 66, 72, 75, 70,
-  76, 80, 78, 84, 82,
-];
+import type { PortfolioPoint } from "@/lib/portfolio-snapshot";
+import { formatBrl } from "@/lib/mock-coins";
 
-const MONTHS = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+type PortfolioChartProps = {
+  series: PortfolioPoint[];
+};
 
-export function PortfolioChart() {
-  const max = Math.max(...POINTS);
-  const min = Math.min(...POINTS);
-  const range = max - min;
+export function PortfolioChart({ series }: PortfolioChartProps) {
+  if (series.length < 2) {
+    return (
+      <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-brand-blue-dark/40 ring-1 ring-white/10 md:h-64">
+        <p className="px-4 text-center text-xs text-white/50">
+          Sem histórico ainda. Deposite ou negocie para começar a ver seu
+          patrimônio ao longo do tempo.
+        </p>
+      </div>
+    );
+  }
+
+  const values = series.map((point) => point.value);
+  const max = Math.max(...values);
+  const rawMin = Math.min(...values);
+  const min = rawMin === max ? Math.max(0, max - 1) : rawMin;
+  const range = max - min || 1;
 
   const W = 700;
   const H = 220;
-  const stepX = W / (POINTS.length - 1);
+  const stepX = W / (series.length - 1);
 
-  const pts = POINTS.map((v, i) => {
+  const pts = series.map((point, i) => {
     const x = i * stepX;
-    const y = H - ((v - min) / range) * (H - 20) - 10;
+    const y = H - ((point.value - min) / range) * (H - 20) - 10;
     return [x, y] as const;
   });
 
@@ -25,6 +38,7 @@ export function PortfolioChart() {
     .join(" ");
 
   const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
+  const labels = pickAxisLabels(series);
 
   return (
     <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-brand-blue-dark/40 ring-1 ring-white/10 md:h-64">
@@ -53,11 +67,29 @@ export function PortfolioChart() {
         <path d={areaPath} fill="url(#area-fill)" />
         <path d={linePath} fill="none" stroke="#1111ff" strokeWidth={2} />
       </svg>
+      <div className="pointer-events-none absolute left-3 top-2 text-[11px] text-white/60">
+        Máx: {formatBrl(max)}
+      </div>
+      <div className="pointer-events-none absolute bottom-1 left-3 text-[11px] text-white/60">
+        Mín: {formatBrl(min)}
+      </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-1 flex justify-between px-3 text-[10px] text-white/40">
-        {MONTHS.map((m) => (
-          <span key={m}>{m}</span>
+        {labels.map((label, i) => (
+          <span key={`${label}-${i}`}>{label}</span>
         ))}
       </div>
     </div>
   );
+}
+
+function pickAxisLabels(series: PortfolioPoint[]) {
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+  const indices =
+    series.length <= 4
+      ? series.map((_, i) => i)
+      : [0, Math.floor(series.length / 3), Math.floor((2 * series.length) / 3), series.length - 1];
+  return indices.map((i) => formatter.format(new Date(series[i].date)));
 }

@@ -1,17 +1,102 @@
 "use client";
 
-import { Barcode, QrCode, Receipt, Zap } from "lucide-react";
-import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import { Barcode, Check, Copy, QrCode, Receipt, Zap } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ApiError,
+  type ApiDeposit,
+  createDeposit,
+  type DepositMethod,
+  type DepositStatus,
+  listDeposits,
+} from "@/lib/api";
 import { formatBrl } from "@/lib/mock-coins";
 
 type Method = "pix" | "boleto";
 
-const PIX_CODE = "127ipx2123128dh23900a121393";
-const BARCODE_LINES = Array.from({ length: 70 }, (_, i) => i % 3 !== 0);
+const METHOD_API: Record<Method, DepositMethod> = {
+  pix: "PIX",
+  boleto: "BOLETO",
+};
 
 export function DepositMethods() {
   const [method, setMethod] = useState<Method>("pix");
-  const [amount, setAmount] = useState("R$ 340.520,00");
+  const [amount, setAmount] = useState("100");
+  const [currentDeposit, setCurrentDeposit] = useState<ApiDeposit | null>(null);
+  const [history, setHistory] = useState<ApiDeposit[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const amountNumber = useMemo(() => parseDecimal(amount), [amount]);
+  const isAmountValid = amountNumber !== null && amountNumber > 0;
+
+  useEffect(() => {
+    let active = true;
+    listDeposits()
+      .then((list) => {
+        if (active) setHistory(list);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setHistoryLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentDeposit || currentDeposit.status !== "PENDING") return;
+
+    const id = currentDeposit.id;
+    const interval = setInterval(async () => {
+      try {
+        const list = await listDeposits();
+        setHistory(list);
+        const updated = list.find((deposit) => deposit.id === id);
+        if (updated && updated.status !== "PENDING") {
+          setCurrentDeposit(updated);
+        }
+      } catch {
+        // ignora erro transitório do polling
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [currentDeposit]);
+
+  const handleSubmit = async () => {
+    if (!isAmountValid || amountNumber === null) {
+      setSubmitError("Informe um valor válido");
+      return;
+    }
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      const deposit = await createDeposit({
+        amountBRL: amountNumber,
+        method: METHOD_API[method],
+      });
+      setCurrentDeposit(deposit);
+      const list = await listDeposits();
+      setHistory(list);
+    } catch (error) {
+      setSubmitError(
+        error instanceof ApiError
+          ? error.message
+          : "Não foi possível gerar a cobrança",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setCurrentDeposit(null);
+    setSubmitError(null);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -22,14 +107,20 @@ export function DepositMethods() {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <MethodCard
             active={method === "pix"}
-            onClick={() => setMethod("pix")}
+            onClick={() => {
+              setMethod("pix");
+              handleReset();
+            }}
             Icon={Zap}
             title="Pix"
             description="Depósito instantâneo. Aprovação em segundos."
           />
           <MethodCard
             active={method === "boleto"}
-            onClick={() => setMethod("boleto")}
+            onClick={() => {
+              setMethod("boleto");
+              handleReset();
+            }}
             Icon={Receipt}
             title="Boleto bancário"
             description="Compensação até 3 dias úteis. Disponível em apenas dias úteis."
@@ -42,30 +133,31 @@ export function DepositMethods() {
           2. Detalhes do depósito
         </h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <div className="flex flex-col gap-3 rounded-2xl bg-brand-blue-dark/60 p-4 ring-1 ring-white/10 backdrop-blur-sm">
-            <label className="text-[11px] font-medium uppercase tracking-wide text-white/60">
-              Valor do depósito
-            </label>
-            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
-              <input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="min-w-0 flex-1 border-none bg-transparent text-base font-medium text-white outline-none"
-              />
-              <span className="text-sm text-white/60">BRL</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] text-white/40">Você receberá:</span>
-              <span className="font-display text-2xl font-bold text-emerald-400 md:text-3xl">
-                {amount}
-              </span>
-              <span className="text-[11px] text-white/40">
-                {method === "pix" ? "Saldo instantâneo" : "Saldo pendente"}
-              </span>
-            </div>
-          </div>
+          <AmountCard
+            amount={amount}
+            onChange={(value) => {
+              setAmount(value);
+              handleReset();
+            }}
+            amountNumber={amountNumber}
+            method={method}
+            onSubmit={handleSubmit}
+            disabled={!isAmountValid || isSubmitting || !!currentDeposit}
+            isSubmitting={isSubmitting}
+            error={submitError}
+            hasDeposit={!!currentDeposit}
+            onReset={handleReset}
+          />
 
-          {method === "pix" ? <PixPanel code={PIX_CODE} /> : <BoletoPanel />}
+          {currentDeposit ? (
+            method === "pix" ? (
+              <PixPanel deposit={currentDeposit} />
+            ) : (
+              <BoletoPanel deposit={currentDeposit} />
+            )
+          ) : (
+            <EmptyPanel method={method} />
+          )}
         </div>
       </section>
 
@@ -73,7 +165,7 @@ export function DepositMethods() {
         <h2 className="font-display text-sm font-medium text-white/80 md:text-base">
           Histórico de entrada
         </h2>
-        <HistoryTable />
+        <HistoryTable rows={history} loading={historyLoading} />
       </section>
     </div>
   );
@@ -117,108 +209,218 @@ function MethodCard({
   );
 }
 
-function PixPanel({ code }: { code: string }) {
+function AmountCard({
+  amount,
+  onChange,
+  amountNumber,
+  method,
+  onSubmit,
+  disabled,
+  isSubmitting,
+  error,
+  hasDeposit,
+  onReset,
+}: {
+  amount: string;
+  onChange: (value: string) => void;
+  amountNumber: number | null;
+  method: Method;
+  onSubmit: () => void;
+  disabled: boolean;
+  isSubmitting: boolean;
+  error: string | null;
+  hasDeposit: boolean;
+  onReset: () => void;
+}) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-brand-blue-dark/60 p-4 ring-1 ring-white/10 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <QrCode className="h-4 w-4 text-cyan-300" />
-        <span className="font-display text-sm font-medium">Pix</span>
+      <label className="text-[11px] font-medium uppercase tracking-wide text-white/60">
+        Valor do depósito
+      </label>
+      <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+        <input
+          inputMode="decimal"
+          value={amount}
+          onChange={(e) => onChange(sanitizeAmount(e.target.value))}
+          disabled={hasDeposit}
+          className="min-w-0 flex-1 border-none bg-transparent text-base font-medium text-white outline-none disabled:opacity-60"
+          placeholder="0,00"
+        />
+        <span className="text-sm text-white/60">BRL</span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="text-[11px] text-white/40">Você receberá:</span>
+        <span className="font-display text-2xl font-bold text-emerald-400 md:text-3xl">
+          {amountNumber !== null ? formatBrl(amountNumber) : "—"}
+        </span>
+        <span className="text-[11px] text-white/40">
+          {method === "pix" ? "Saldo instantâneo" : "Saldo pendente"}
+        </span>
+      </div>
+
+      {hasDeposit ? (
+        <button
+          type="button"
+          onClick={onReset}
+          className="mt-1 rounded-xl border border-white/15 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/5"
+        >
+          Gerar novo depósito
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={disabled}
+          className="mt-1 rounded-xl bg-gradient-to-r from-violet-500 to-brand-blue-light px-4 py-2 text-sm font-medium text-white shadow-lg transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {isSubmitting ? "Gerando..." : "Gerar cobrança"}
+        </button>
+      )}
+
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+function EmptyPanel({ method }: { method: Method }) {
+  return (
+    <div className="flex min-h-[260px] flex-col items-center justify-center gap-2 rounded-2xl bg-brand-blue-dark/60 p-6 text-center ring-1 ring-white/10 backdrop-blur-sm">
+      {method === "pix" ? (
+        <QrCode className="h-8 w-8 text-white/30" />
+      ) : (
+        <Barcode className="h-8 w-8 text-white/30" />
+      )}
+      <p className="text-sm text-white/60">
+        Informe o valor e clique em &quot;Gerar cobrança&quot; para receber a{" "}
+        {method === "pix" ? "chave Pix" : "linha do boleto"}.
+      </p>
+    </div>
+  );
+}
+
+function PixPanel({ deposit }: { deposit: ApiDeposit }) {
+  const code = deposit.pixQrCode ?? "";
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl bg-brand-blue-dark/60 p-4 ring-1 ring-white/10 backdrop-blur-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <QrCode className="h-4 w-4 text-cyan-300" />
+          <span className="font-display text-sm font-medium">Pix</span>
+        </div>
+        <StatusBadge status={deposit.status} />
       </div>
       <p className="text-[11px] text-white/60">
-        Escaneie o QR CODE com o app do seu banco ou copie e cole o código Pix
+        Escaneie o QR Code com o app do seu banco ou copie e cole o código Pix
         abaixo.
       </p>
       <div className="flex items-center justify-center rounded-xl bg-white p-4">
-        <QrPlaceholder />
+        {code ? (
+          <QRCodeSVG value={code} size={168} level="M" />
+        ) : (
+          <span className="text-xs text-black/60">QR indisponível</span>
+        )}
       </div>
-      <div className="flex flex-col gap-1">
-        <span className="text-[11px] text-white/40">Código Pix</span>
-        <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80">
-          {code}
-        </div>
-      </div>
+      <CopyField label="Código Pix" value={code} />
     </div>
   );
 }
 
-function BoletoPanel() {
+function BoletoPanel({ deposit }: { deposit: ApiDeposit }) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-brand-blue-dark/60 p-4 ring-1 ring-white/10 backdrop-blur-sm">
-      <div className="flex items-center gap-2">
-        <Barcode className="h-4 w-4 text-cyan-300" />
-        <span className="font-display text-sm font-medium">Boleto bancário</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Barcode className="h-4 w-4 text-cyan-300" />
+          <span className="font-display text-sm font-medium">
+            Boleto bancário
+          </span>
+        </div>
+        <StatusBadge status={deposit.status} />
       </div>
       <p className="text-[11px] text-white/60">
-        Escaneie o código de barras com o app do seu banco ou copie e cole o
-        código abaixo.
+        Abra a fatura no Asaas para visualizar o código de barras e a linha
+        digitável.
       </p>
-      <div className="flex h-32 items-end justify-center gap-px rounded-xl bg-white p-4">
-        {BARCODE_LINES.map((thick, i) => (
-          <span
-            key={i}
-            className="h-full"
-            style={{
-              width: thick ? 2 : 1,
-              background: i % 7 === 0 ? "#fff" : "#000",
-            }}
-          />
-        ))}
-      </div>
-      <div className="flex flex-col gap-1">
-        <span className="text-[11px] text-white/40">Código boleto</span>
-        <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80">
-          12378asbas1212312bhd1212319391239
-        </div>
-      </div>
+      {deposit.asaasInvoiceUrl ? (
+        <a
+          href={deposit.asaasInvoiceUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-xl bg-gradient-to-r from-violet-500 to-brand-blue-light px-4 py-3 text-center text-sm font-medium text-white shadow-lg transition-opacity hover:opacity-90"
+        >
+          Abrir boleto
+        </a>
+      ) : (
+        <p className="text-xs text-amber-300">
+          Boleto ainda indisponível, aguarde alguns segundos.
+        </p>
+      )}
     </div>
   );
 }
 
-function QrPlaceholder() {
-  const cells = Array.from({ length: 21 * 21 }, (_, i) => {
-    const x = i % 21;
-    const y = Math.floor(i / 21);
-    if ((x < 7 && y < 7) || (x >= 14 && y < 7) || (x < 7 && y >= 14)) {
-      const inner = x % 6 === 0 || y % 6 === 0 || (x >= 2 && x <= 4 && y >= 2 && y <= 4);
-      return inner;
+function CopyField({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // navegadores sem clipboard simplesmente ignoram
     }
-    return (x * 7 + y * 13 + (x ^ y)) % 3 === 0;
-  });
+  };
+
   return (
-    <div
-      className="grid"
-      style={{
-        gridTemplateColumns: "repeat(21, 1fr)",
-        width: 168,
-        height: 168,
-      }}
-    >
-      {cells.map((on, i) => (
-        <span
-          key={i}
-          style={{ background: on ? "#000" : "#fff", width: 8, height: 8 }}
-        />
-      ))}
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] text-white/40">{label}</span>
+      <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80">
+        <span className="min-w-0 flex-1 truncate">{value || "—"}</span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          disabled={!value}
+          className="flex h-6 w-6 items-center justify-center rounded-md text-white/70 transition-colors hover:bg-white/10 disabled:opacity-40"
+          aria-label="Copiar"
+        >
+          {copied ? (
+            <Check className="h-3.5 w-3.5 text-emerald-300" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
+        </button>
+      </div>
     </div>
   );
 }
 
-type Row = {
-  date: string;
-  method: "PIX" | "Boleto";
-  value: number;
-  status: "Aprovado" | "Pendente";
-};
+function StatusBadge({ status }: { status: DepositStatus }) {
+  const label =
+    status === "PAID" ? "Aprovado" : status === "CANCELED" ? "Cancelado" : "Pendente";
+  const cls =
+    status === "PAID"
+      ? "bg-emerald-400/10 text-emerald-300"
+      : status === "CANCELED"
+        ? "bg-red-400/10 text-red-300"
+        : "bg-amber-400/10 text-amber-300";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${cls}`}
+    >
+      {label}
+    </span>
+  );
+}
 
-const ROWS: Row[] = [
-  { date: "20/05/2026", method: "PIX", value: 5000, status: "Aprovado" },
-  { date: "20/05/2026", method: "PIX", value: 5000, status: "Pendente" },
-  { date: "20/05/2026", method: "Boleto", value: 5000, status: "Aprovado" },
-  { date: "20/05/2026", method: "PIX", value: 5000, status: "Aprovado" },
-  { date: "20/05/2026", method: "Boleto", value: 5000, status: "Pendente" },
-];
-
-function HistoryTable() {
+function HistoryTable({
+  rows,
+  loading,
+}: {
+  rows: ApiDeposit[];
+  loading: boolean;
+}) {
   return (
     <div className="overflow-x-auto rounded-2xl bg-brand-blue-dark/60 p-4 ring-1 ring-white/10 backdrop-blur-sm">
       <table className="w-full min-w-[420px] text-left text-xs">
@@ -231,26 +433,57 @@ function HistoryTable() {
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
-          {ROWS.map((r, i) => (
-            <tr key={i} className="text-white/90">
-              <td className="py-2 text-white/60">{r.date}</td>
-              <td className="py-2 font-medium">{r.method}</td>
-              <td className="py-2">{formatBrl(r.value)}</td>
-              <td className="py-2">
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                    r.status === "Aprovado"
-                      ? "bg-emerald-400/10 text-emerald-300"
-                      : "bg-amber-400/10 text-amber-300"
-                  }`}
-                >
-                  {r.status}
-                </span>
+          {loading ? (
+            <tr>
+              <td colSpan={4} className="py-4 text-center text-white/50">
+                Carregando...
               </td>
             </tr>
-          ))}
+          ) : rows.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="py-4 text-center text-white/50">
+                Nenhum depósito ainda.
+              </td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id} className="text-white/90">
+                <td className="py-2 text-white/60">
+                  {formatDate(row.createdAt)}
+                </td>
+                <td className="py-2 font-medium">
+                  {row.method === "PIX" ? "PIX" : "Boleto"}
+                </td>
+                <td className="py-2">{formatBrl(Number(row.amountBRL))}</td>
+                <td className="py-2">
+                  <StatusBadge status={row.status} />
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
   );
+}
+
+function sanitizeAmount(value: string) {
+  const trimmed = value.replace(/[^\d.,]/g, "");
+  const firstComma = trimmed.indexOf(",");
+  if (firstComma === -1) return trimmed;
+  return (
+    trimmed.slice(0, firstComma + 1) +
+    trimmed.slice(firstComma + 1).replace(/[,]/g, "")
+  );
+}
+
+function parseDecimal(value: string): number | null {
+  if (!value) return null;
+  const normalized = value.replace(/\./g, "").replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR");
 }
