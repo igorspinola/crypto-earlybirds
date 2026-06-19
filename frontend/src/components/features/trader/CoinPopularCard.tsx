@@ -10,13 +10,15 @@ export function CoinPopularCard({
   dim?: boolean;
   focus?: boolean;
 }) {
+  const isLocalLogo = coin.logoSrc?.startsWith("/");
+
   return (
     <article
       className={`relative flex w-44 shrink-0 flex-col gap-3 overflow-hidden rounded-3xl bg-gradient-to-b from-[#03032B] to-[#64649F] p-5 ring-1 ring-white/10 md:w-52 ${
         focus ? "shadow-2xl shadow-black/40" : ""
       } ${dim ? "opacity-70" : "opacity-100"}`}
     >
-      {coin.logoSrc ? (
+      {coin.logoSrc && isLocalLogo ? (
         <Image
           src={coin.logoSrc}
           alt=""
@@ -24,6 +26,9 @@ export function CoinPopularCard({
           height={32}
           className="h-7 w-7"
         />
+      ) : coin.logoSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={coin.logoSrc} alt="" className="h-7 w-7 object-contain" />
       ) : (
         <span className="font-display text-2xl font-bold text-white">
           {coin.fallbackChar ?? coin.symbol[0]}
