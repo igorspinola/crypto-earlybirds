@@ -19,6 +19,13 @@
         },
         "type": "Text"
       },
+      "description": {
+        "config": {
+          "label": "Description",
+          "placeholder": "Descrição curta da categoria"
+        },
+        "type": "Text"
+      },
       "image": {
         "config": {
           "label": "Image",

@@ -6,29 +6,24 @@ import { getCategories, getHomeContent } from "@/lib/prismic";
 
 const CATEGORY_PRESENTATION = {
   defi: {
-    description: "Finanças descentralizadas e yield farming.",
     Icon: Layers,
     accent: "emerald",
   },
   nft: {
-    description: "Colecionáveis digitais e arte exclusiva.",
     Icon: ImageIcon,
     accent: "indigo",
   },
   metaverse: {
-    description: "Tokens de mundos virtuais e jogos.",
     Icon: Boxes,
     accent: "fuchsia",
   },
   stablecoins: {
-    description: "Ativos pareados a moedas fiduciárias.",
     Icon: Coins,
     accent: "amber",
   },
 } as const;
 
 const DEFAULT_PRESENTATION = {
-  description: "Explore os ativos disponíveis nesta categoria.",
   Icon: Coins,
   accent: "indigo",
 } as const;
@@ -86,7 +81,7 @@ export default async function HomePage() {
               <CategoryCard
                 key={category.uid}
                 title={category.name}
-                description={presentation.description}
+                description={category.description}
                 imageUrl={category.imageUrl}
                 imageAlt={category.imageAlt}
                 Icon={presentation.Icon}
