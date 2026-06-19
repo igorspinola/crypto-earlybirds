@@ -100,7 +100,10 @@ describe('AuthController', () => {
     controller.logout(response as unknown as Response);
 
     expect(response.clearCookie).toHaveBeenCalledWith('access_token', {
+      httpOnly: true,
       path: '/',
+      sameSite: 'lax',
+      secure: false,
     });
   });
 
