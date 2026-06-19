@@ -111,8 +111,15 @@ export class ApiError extends Error {
   }
 }
 
-const apiBaseUrl =
+const clientApiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
+
+function getApiBaseUrl() {
+  if (typeof window === "undefined") {
+    return process.env.INTERNAL_API_URL ?? clientApiBaseUrl;
+  }
+  return clientApiBaseUrl;
+}
 
 export async function apiRequest<T>(
   path: string,
@@ -129,7 +136,7 @@ export async function apiRequest<T>(
     headers.set("Cookie", cookieHeader);
   }
 
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...fetchOptions,
     headers,
     credentials: "include",

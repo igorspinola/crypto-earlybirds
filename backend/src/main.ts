@@ -21,8 +21,16 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  const frontendUrl = config.get<string>('FRONTEND_URL');
   app.enableCors({
-    origin: config.get<string>('FRONTEND_URL'),
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (frontendUrl && origin === frontendUrl) return callback(null, true);
+      if (/^https:\/\/crypto-earlybirds[\w-]*\.vercel\.app$/.test(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`), false);
+    },
     credentials: true,
   });
 
