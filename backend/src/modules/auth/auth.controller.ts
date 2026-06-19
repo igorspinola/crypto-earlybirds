@@ -64,9 +64,8 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   logout(@Res({ passthrough: true }) response: Response): void {
-    response.clearCookie('access_token', {
-      path: '/',
-    });
+    const { httpOnly, path, sameSite, secure } = this.getCookieOptions();
+    response.clearCookie('access_token', { httpOnly, path, sameSite, secure });
   }
 
   @ApiBearerAuth()
@@ -93,15 +92,21 @@ export class AuthController {
   }
 
   private setAuthCookie(response: Response, accessToken: string): void {
+    response.cookie('access_token', accessToken, {
+      ...this.getCookieOptions(),
+      maxAge: this.authService.getJwtCookieMaxAge(),
+    });
+  }
+
+  private getCookieOptions() {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
 
-    response.cookie('access_token', accessToken, {
+    return {
       httpOnly: true,
-      maxAge: this.authService.getJwtCookieMaxAge(),
       path: '/',
-      sameSite: 'lax',
+      sameSite: isProduction ? ('none' as const) : ('lax' as const),
       secure: isProduction,
-    });
+    };
   }
 }
