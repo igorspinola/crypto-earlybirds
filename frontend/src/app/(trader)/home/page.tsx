@@ -2,7 +2,7 @@ import { Boxes, Coins, ImageIcon, Layers } from "lucide-react";
 import Image from "next/image";
 import { CategoryCard } from "@/components/features/trader/CategoryCard";
 import { CoinPopularCarousel } from "@/components/features/trader/CoinPopularCarousel";
-import { getCategories } from "@/lib/prismic";
+import { getCategories, getHomeContent } from "@/lib/prismic";
 
 const CATEGORY_PRESENTATION = {
   defi: {
@@ -36,14 +36,19 @@ const DEFAULT_PRESENTATION = {
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const categories = await getCategories();
+  const [categories, homeContent] = await Promise.all([
+    getCategories(),
+    getHomeContent(),
+  ]);
+  const heroImageUrl =
+    homeContent.heroImageUrl || "/images/futuro-financas.png";
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
       <section className="relative overflow-hidden rounded-3xl">
         <Image
-          src="/images/futuro-financas.png"
-          alt=""
+          src={heroImageUrl}
+          alt={homeContent.heroImageAlt}
           width={1200}
           height={400}
           className="h-76 w-full object-cover md:h-90"
@@ -52,11 +57,10 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#02021D] via-[#12131C]/40 to-[#12131C]/0" />
         <div className="absolute inset-0 flex flex-col justify-center gap-3 p-6 md:p-10">
           <h1 className="max-w-md font-display text-2xl font-medium leading-tight text-white md:text-4xl">
-            Domine o Futuro das Finanças
+            {homeContent.heroTitle}
           </h1>
           <p className="max-w-md text-xs text-white/80 md:text-sm">
-            A cesso aos ativos digitais mais promissores do mercado com as
-            menores taxas e execução institucional.
+            {homeContent.heroSubtitle}
           </p>
           <a
             href="/galeria"
@@ -68,7 +72,9 @@ export default async function HomePage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-medium md:text-xl">Categorias</h2>
+        <h2 className="font-display text-lg font-medium md:text-xl">
+          Categorias
+        </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {categories.map((category) => {
             const presentation =

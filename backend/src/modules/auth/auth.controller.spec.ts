@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller';
 
 const authService = {
   login: jest.fn(),
+  register: jest.fn(),
   getJwtCookieMaxAge: jest.fn(),
   requestPasswordReset: jest.fn(),
   resetPassword: jest.fn(),
@@ -48,6 +49,40 @@ describe('AuthController', () => {
     );
 
     expect(result).toEqual({ user: { id: 'user-1', role: UserRole.ADMIN } });
+    expect(response.cookie).toHaveBeenCalledWith(
+      'access_token',
+      'access-token',
+      {
+        httpOnly: true,
+        maxAge: 604_800_000,
+        path: '/',
+        sameSite: 'lax',
+        secure: false,
+      },
+    );
+  });
+
+  it('registers a trader and sets auth cookie', async () => {
+    authService.register.mockResolvedValue({
+      accessToken: 'access-token',
+      user: { id: 'user-1', role: UserRole.TRADER },
+    });
+
+    const dto = {
+      fullName: 'Ada Lovelace',
+      email: 'ada@email.com',
+      password: 'secret123',
+      age: 28,
+      photoUrl: 'https://cdn.example.com/ada.png',
+    };
+
+    const result = await controller.register(
+      dto,
+      response as unknown as Response,
+    );
+
+    expect(authService.register).toHaveBeenCalledWith(dto);
+    expect(result).toEqual({ user: { id: 'user-1', role: UserRole.TRADER } });
     expect(response.cookie).toHaveBeenCalledWith(
       'access_token',
       'access-token',

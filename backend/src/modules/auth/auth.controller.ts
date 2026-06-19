@@ -13,6 +13,7 @@ import type { Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import type { AuthenticatedUser } from './types/authenticated-user';
+import { CreateTraderDto } from '../users/dto/create-trader.dto';
 import { UsersService } from '../users/users.service';
 import { serializeUser } from '../users/user.serializer';
 import { AuthService } from './auth.service';
@@ -37,6 +38,21 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.authService.login(dto);
+    this.setAuthCookie(response, result.accessToken);
+
+    return {
+      user: result.user,
+    };
+  }
+
+  @Public()
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(
+    @Body() dto: CreateTraderDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.register(dto);
     this.setAuthCookie(response, result.accessToken);
 
     return {

@@ -30,6 +30,7 @@ const prisma = {
 
 const usersService = {
   findByEmail: jest.fn(),
+  createTrader: jest.fn(),
 };
 
 describe('AuthService', () => {
@@ -79,6 +80,43 @@ describe('AuthService', () => {
       userId: 'user-1',
       email: 'admin@email.com',
       role: UserRole.ADMIN,
+    });
+  });
+
+  it('registers a trader and returns an authenticated session', async () => {
+    usersService.createTrader.mockResolvedValue({
+      id: 'user-1',
+      email: 'trader@email.com',
+      passwordHash: 'hashed-password',
+      fullName: 'Trader',
+      age: 28,
+      photoUrl: null,
+      role: UserRole.TRADER,
+      balanceBRL: { toString: () => '0' },
+      createdAt: new Date('2026-01-01T00:00:00Z'),
+      updatedAt: new Date('2026-01-01T00:00:00Z'),
+    });
+
+    const dto = {
+      fullName: 'Trader',
+      email: 'trader@email.com',
+      password: 'secret123',
+      age: 28,
+    };
+
+    const result = await service.register(dto);
+
+    expect(usersService.createTrader).toHaveBeenCalledWith(dto);
+    expect(result.accessToken).toBe('signed-token');
+    expect(result.user).toMatchObject({
+      id: 'user-1',
+      email: 'trader@email.com',
+      role: UserRole.TRADER,
+    });
+    expect(jwtService.signAsync).toHaveBeenCalledWith({
+      userId: 'user-1',
+      email: 'trader@email.com',
+      role: UserRole.TRADER,
     });
   });
 

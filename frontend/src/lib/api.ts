@@ -43,6 +43,14 @@ export type LoginPayload = {
   password: string;
 };
 
+export type RegisterPayload = {
+  fullName: string;
+  email: string;
+  password: string;
+  age?: number;
+  photoUrl?: string;
+};
+
 export type CreateTraderPayload = {
   fullName: string;
   email: string;
@@ -121,6 +129,13 @@ export async function apiRequest<T>(
 
 export async function login(payload: LoginPayload) {
   return apiRequest<{ user: ApiUser }>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function registerUser(payload: RegisterPayload) {
+  return apiRequest<{ user: ApiUser }>("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
